@@ -74,7 +74,6 @@ size_test() ->
 lookup(Path, Tree) ->
     maps:get(Path, Tree, 'none').
 
-
-
-
+lookupe_test() -> 
+    ?_assertEqual('none', lookup([], empty())).
 
