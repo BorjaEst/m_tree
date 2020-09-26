@@ -6,7 +6,7 @@
 
 -export([example/0]).
 -export([empty/0, is_empty/1, size/1]).
--export([lookup/2]).
+-export([lookup/2, update/3]).
 
 -type key()    :: term(). 
 -type m_tree() :: #{Path::[key()] => {Value::term(), [key()]}}.
@@ -93,4 +93,20 @@ get(Path, Tree) ->
 get_test() -> 
     ?assertException(error, {badkey,[]}, get([], empty())).
 
+
+%%--------------------------------------------------------------------
+%% @doc Updates value at path in the tree and returns the new tree. 
+%%      Assumes that the key is present in the tree.
+%% @end
+%%--------------------------------------------------------------------
+-spec update(Path, Val, Tree1) -> Tree2 when
+      Path  :: [key()],
+      Val   :: term(),
+      Tree1 :: m_tree(),
+      Tree2 :: m_tree().
+update(Path, Val, Tree) ->
+    maps:update(Path, Val, Tree).
+
+update_test() -> 
+    ?assertException(error, {badkey,[]}, update([], val, empty())).
 
