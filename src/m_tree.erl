@@ -6,6 +6,7 @@
 
 -export([example/0]).
 -export([empty/0, is_empty/1, size/1]).
+-export([lookup/2]).
 
 -type key()    :: term(). 
 -type m_tree() :: #{Path::[key()] => {Value::term(), [key()]}}.
@@ -58,4 +59,21 @@ size(Tree) ->
 
 size_test() -> 
     ?_assertEqual(0, size(empty())).
+
+
+%%--------------------------------------------------------------------
+%% @doc Looks up the path in tree. Returns {value, V}, or `none' if 
+%% the path does not exist.
+%% @end
+%%--------------------------------------------------------------------
+-spec lookup(Path, Tree) -> 'none' | {'value', Val} when
+      Path :: [key()],
+      Val  :: term(),
+      Tree :: m_tree().
+lookup(Path, Tree) ->
+    maps:get(Path, Tree, 'none').
+
+
+
+
 
