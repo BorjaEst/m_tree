@@ -32,7 +32,7 @@ empty() ->
     #{}.
 
 empty_test() -> 
-    ?_assertEqual(#{}, empty()).
+    ?assertEqual(#{}, empty()).
 
 
 %%--------------------------------------------------------------------
@@ -45,7 +45,7 @@ is_empty(Tree) ->
     0 == size(Tree).
 
 is_empty_test() -> 
-    ?_assert(is_empty(empty())).
+    ?assert(is_empty(empty())).
 
 
 %%--------------------------------------------------------------------
@@ -59,7 +59,7 @@ size(Tree) ->
     map_size(Tree).
 
 size_test() -> 
-    ?_assertEqual(0, size(empty())).
+    ?assertEqual(0, size(empty())).
 
 
 %%--------------------------------------------------------------------
@@ -74,6 +74,23 @@ size_test() ->
 lookup(Path, Tree) ->
     maps:get(Path, Tree, 'none').
 
-lookupe_test() -> 
-    ?_assertEqual('none', lookup([], empty())).
+lookup_test() -> 
+    ?assertEqual('none', lookup([], empty())).
+
+
+%%--------------------------------------------------------------------
+%% @doc Retreives the value stored in the path. Assumes that the path
+%%      is present in the tree.
+%% @end
+%%--------------------------------------------------------------------
+-spec get(Path, Tree) -> Val when
+      Path :: [key()],
+      Val  :: term(),
+      Tree :: m_tree().
+get(Path, Tree) ->
+    maps:get(Path, Tree).
+
+get_test() -> 
+    ?assertException(error, {badkey,[]}, get([], empty())).
+
 
