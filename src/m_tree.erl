@@ -36,7 +36,7 @@ empty_test() ->
 
 
 %%--------------------------------------------------------------------
-%% @doc Returns true if the tree is empty.
+%% @doc Returns true if the tree is empty, and false otherwise.
 %% @end
 %%--------------------------------------------------------------------
 -spec is_empty(Tree) -> boolean() when
@@ -49,7 +49,8 @@ is_empty_test() ->
 
 
 %%--------------------------------------------------------------------
-%% @doc Returns the tree size.
+%% @doc Returns the number of nodes in the tree as an integer.
+%%      Returns 0 (zero) if the tree is empty.
 %% @end
 %%--------------------------------------------------------------------
 -spec size(Tree) -> non_neg_integer() when
@@ -63,7 +64,7 @@ size_test() ->
 
 %%--------------------------------------------------------------------
 %% @doc Looks up the path in tree. Returns {value, V}, or `none' if 
-%% the path does not exist.
+%%      the path does not exist.
 %% @end
 %%--------------------------------------------------------------------
 -spec lookup(Path, Tree) -> 'none' | {'value', Val} when
