@@ -5,8 +5,8 @@
 -compile({no_auto_import,[size/1]}).
 
 -export([example/0]).
--export([empty/0, is_empty/1, size/1]).
--export([lookup/2, update/3]).
+-export([new/1, size/1]).
+-export([lookup/2, insert/3, update/3]).
 
 -type key()    :: term(). 
 -type m_tree() :: #{Path::[key()] => {Value::term(), [key()]}}.
@@ -24,28 +24,16 @@ example() ->
     }.
 
 %%--------------------------------------------------------------------
-%% @doc Returns an empty tree.
+%% @doc Returns a new tree with the indicated value at the roor '[]'.
 %% @end
 %%--------------------------------------------------------------------
--spec empty() -> m_tree().
-empty() -> 
-    #{}.
+-spec new(Val) -> m_tree() when
+    Val :: term().
+new(Val) -> 
+    #{[] => {Val, []}}.
 
-empty_test() -> 
-    ?assertEqual(#{}, empty()).
-
-
-%%--------------------------------------------------------------------
-%% @doc Returns true if the tree is empty, and false otherwise.
-%% @end
-%%--------------------------------------------------------------------
--spec is_empty(Tree) -> boolean() when
-      Tree::m_tree().
-is_empty(Tree) ->
-    0 == size(Tree).
-
-is_empty_test() -> 
-    ?assert(is_empty(empty())).
+new_test() -> 
+    ?assertEqual(#{[]=>{val_a,[]}}, new(val_a)).
 
 
 %%--------------------------------------------------------------------
@@ -59,7 +47,7 @@ size(Tree) ->
     map_size(Tree).
 
 size_test() -> 
-    ?assertEqual(0, size(empty())).
+    ?assertEqual(1, size(new(val_1))).
 
 
 %%--------------------------------------------------------------------
@@ -72,10 +60,14 @@ size_test() ->
       Val  :: term(),
       Tree :: m_tree().
 lookup(Path, Tree) ->
-    maps:get(Path, Tree, 'none').
+    case maps:get(Path, Tree, 'none') of 
+        {Val, _} -> {value, Val};
+        'none' -> 'none'
+    end.
 
 lookup_test() -> 
-    ?assertEqual('none', lookup([], empty())).
+    ?assertEqual({value, 'val_1'}, lookup([], new('val_1'))),
+    ?assertEqual('none', lookup([bad_path], new('val_1'))).
 
 
 %%--------------------------------------------------------------------
@@ -88,10 +80,35 @@ lookup_test() ->
       Val  :: term(),
       Tree :: m_tree().
 get(Path, Tree) ->
-    maps:get(Path, Tree).
+    {Val, _} = maps:get(Path, Tree),
+    Val.
 
 get_test() -> 
-    ?assertException(error, {badkey,[]}, get([], empty())).
+    ?assertEqual('val_1', get([], new('val_1'))),
+    ?assertException(error, {badkey,[bad_path]}, get([bad_path], new('val_1'))).
+
+
+%%--------------------------------------------------------------------
+%% @doc Inserts a new value under a path. Returns the assogned key and
+%%      the new tree. Assumes that the path is present in the tree.
+%% @end
+%%--------------------------------------------------------------------
+-spec insert(Path, Val, Tree1) -> {Key, Tree2} when
+      Path  :: [key()],
+      Val   :: term(),
+      Tree1 :: m_tree(),
+      Key   :: key(),
+      Tree2 :: m_tree().
+insert(Path, Val, Tree) ->
+    {Key, Tree2} = add_key(Path, Tree), % Adds a new branch to the tree
+    {Key, Tree2#{[Key|Path] => {Val, []}}}. % Inserts the node on the branch
+
+insert_test() -> 
+    WriteAndReadTest = fun(Val) -> 
+        {K,Tree} = insert([], Val, new(a)), 
+        get([K], Tree)
+    end,
+    ?assertEqual(b, WriteAndReadTest(b)).
 
 
 %%--------------------------------------------------------------------
@@ -105,8 +122,22 @@ get_test() ->
       Tree1 :: m_tree(),
       Tree2 :: m_tree().
 update(Path, Val, Tree) ->
-    maps:update(Path, Val, Tree).
+    Updt_val = fun({_, Keys}) -> {Val, Keys} end, 
+    maps:update_with(Path, Updt_val, Tree).
 
 update_test() -> 
-    ?assertException(error, {badkey,[]}, update([], val, empty())).
+    ?assertEqual(new(b), update([], b, new(a))),
+    ?assertException(error, {badkey,[bad_path]}, update([bad_path], b, new(a))).
+
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
+
+% Adds a new key to the node connections ----------------------------
+-define(id, erlang:unique_integer([monotonic, positive])).
+add_key(Path, Tree) ->
+    Id = ?id,
+    Add_key = fun({Val, Keys}) -> {Val, [Id|Keys]} end, 
+    {Id, maps:update_with(Path, Add_key, Tree)}.
 
